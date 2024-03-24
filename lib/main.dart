@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_todolist/async/extensions_async.dart';
 import 'package:flutter_todolist/model/items/cached_list.dart';
-import 'package:flutter_todolist/model/items/item.dart';
 import 'package:flutter_todolist/model/lists/list.dart';
 import 'package:flutter_todolist/model/lists/memory_list.dart';
 import 'package:flutter_todolist/model/lists/platform_list.dart';
 import 'package:flutter_todolist/model/sqlite/sqlite_list.dart';
+import 'package:flutter_todolist/widgets/todolist_widget.dart';
 
 void main() async {
   final TodoList todoList = CachedTodoList(PlatformTodoList(
@@ -55,57 +54,15 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {});
   }
 
-  Widget futureCard(Item item) {
-    return FutureBuilder<String>(
-        future: item.title(),
-        builder: (BuildContext context, AsyncSnapshot<String> snapshot) =>
-            snapshot.widgetFor(
-                onData: (data) => Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15)),
-                    child: Container(
-                      height: 50,
-                      color: Colors.white70,
-                      child: Center(
-                        child: Text(snapshot.data!),
-                      ),
-                    )),
-                onProgress: () =>
-                    const Center(child: CircularProgressIndicator()),
-                onError: (error) => throw Exception(error)));
-  }
-
   @override
   Widget build(BuildContext context) {
-    final futureList = FutureBuilder<List<Item>>(
-        future: todoList.items(),
-        builder: (BuildContext context, AsyncSnapshot<List<Item>> snapshot) =>
-            snapshot.widgetFor(
-                onData: (data) {
-                  if (data.isEmpty) {
-                    return const Center(
-                      child: Text("Empty"),
-                    );
-                  }
-                  return ListView.builder(
-                      physics: const BouncingScrollPhysics(),
-                      controller: ScrollController(),
-                      scrollDirection: Axis.vertical,
-                      itemCount: data.length,
-                      itemBuilder: (BuildContext context, int index) =>
-                          futureCard(data.elementAt(index)));
-                },
-                onProgress: () =>
-                    const Center(child: CircularProgressIndicator()),
-                onError: (error) => throw Exception(error)));
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
       body: Column(
         children: [
-          Expanded(child: futureList),
+          Expanded(child: TodoListWidget.newWidget(todoList)),
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
